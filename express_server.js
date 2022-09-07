@@ -41,3 +41,8 @@ app.get("/hello", (req, res) => {
     const templateVars = { greeting: "Hello World!" };
     res.render("hello_world", templateVars);
   });
+
+  app.get("/urls/:id", (req, res) => {
+    const templateVars = { id: req.params.id, longURL: "http://www.lighthouselabs.ca" };
+    res.render("urls_show", templateVars);
+  });
