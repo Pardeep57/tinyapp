@@ -61,7 +61,11 @@ app.get("/hello", (req, res) => {
    res.redirect(longURL);
 
   });
-
+  app.post("/urls/:id/delete", (req, res) => {
+    const urlToDelete = req.params.id;
+    delete urlDatabase[urlToDelete];
+    res.redirect('/urls');
+  });
 
   app.post("/urls", (req, res) => {
     console.log(req.body); // Log the POST request body to the console
