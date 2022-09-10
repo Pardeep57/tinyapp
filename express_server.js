@@ -1,8 +1,10 @@
 const express = require("express");
 const morgan = require('morgan');
+const bodyParser = require('body-parser');
 
 const app = express();
 const PORT = process.env.PORT || 8080; // default port 8080
+app.use(bodyParser.urlencoded({extended: false}));
 
 app.use(morgan('dev'));
 app.use(express.urlencoded({ extended: false }));
@@ -14,7 +16,7 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com",
 };
 
-app.use(express.urlencoded({ extended: true }));
+ app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -37,12 +39,26 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
-app.get("/urls/:id", (req, res) => {
+app.get("/urls/:shortUrl", (req, res) => {
+  /*
+  // first preference
   const templateVars = {
     id: req.params.id,
     longURL: "http://www.lighthouselabs.ca",
   };
   res.render("urls_show", templateVars);
+*/
+const shortUrl = req.params.shortUrl;
+console.log('id' + shortUrl);
+  
+const longURL = urlDatabase[shortUrl];
+console.log('longURL' + longURL);
+
+let templateVars = { shortUrl: shortUrl, longURL: longURL};
+console.log('templateVars' + templateVars);
+
+res.render('urls_show', templateVars);
+
 });
 
 app.get("/u/:id", (req, res) => {
@@ -58,16 +74,42 @@ app.post("/urls/:id/delete", (req, res) => {
   res.redirect("/urls");
 });
 
+
+app.post('/urls/:shortURL/edit', (req, res) => {
+    urlDatabase[req.params.shortURL] = req.body.longURL;
+    res.redirect('/urls');
+  
+});
+
 app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
-  res.send("Ok"); // Respond with 'Ok' (we will replace this)
+  //console.log(req.body); // Log the POST request body to the console
+  // res.send("Ok"); // Respond with 'Ok' (we will replace this)
+
+  const longUrl = req.body.longURL;
+  
+  const newURL = {
+    longUrl: longUrl,
+     };
+
+  //const newId = Math.random().toString(36).substring(2, 6);
+  
+  const newId = randomString ();
+  console.log('newId' + newId);
+
+  urlDatabase[newId] = req.body.longURL;
+
+  console.log('urlDatabase' + urlDatabase);
+  console.log('urlDatabase.newId' + urlDatabase[newId]);
+
+  res.redirect('/urls');
+
 });
 
 const generateRandomString = () => {
-  const lowerCase = "abcdefghijklmnopqrstuvwxyz";
-  const upperCase = lowerCase.toUpperCase();
-  const numeric = "1234567890";
-  const alphaNumeric = lowerCase + upperCase + numeric;
+  const lowerCaseValues = "abcdefghijklmnopqrstuvwxyz";
+  const upperCaseValues = lowerCaseValues.toUpperCase();
+  const numericValues = "1234567890";
+  const alphaNumeric = lowerCaseValues + upperCaseValues + numericValues;
   //alphaNumeric is 62
   let index = Math.round(Math.random() * 100);
   if (index > 61) {
