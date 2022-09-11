@@ -75,6 +75,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortUrl", (req, res) => {
+  const username = req.cookies.userId;
   
   const shortUrl = req.params.shortUrl;
   console.log("id" + shortUrl);
@@ -82,7 +83,7 @@ app.get("/urls/:shortUrl", (req, res) => {
   const longURL = urlDatabase[shortUrl];
   console.log("longURL" + longURL);
 
-  let templateVars = { shortUrl: shortUrl, longURL: longURL };
+  let templateVars = { shortUrl: shortUrl, longURL: longURL , username: username };
   console.log("templateVars" + templateVars);
 
   res.render("urls_show", templateVars);
@@ -91,6 +92,7 @@ app.get("/urls/:shortUrl", (req, res) => {
 app.get("/u/:id", (req, res) => {
   // const templateVars = { id: req.params.id, longURL: "http://www.lighthouselabs.ca" };
   // res.render("urls_show", templateVars);
+  
   const longURL = urlDatabase[req.params.id];
   res.redirect(longURL);
 });
