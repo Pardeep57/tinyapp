@@ -1,12 +1,15 @@
 const express = require("express");
 const morgan = require("morgan");
 const bodyParser = require("body-parser");
+const cookieParser = require('cookie-parser');
+
 
 const app = express();
 const PORT = process.env.PORT || 8080; // default port 8080
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(morgan("dev"));
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
 
 app.set("view engine", "ejs");
@@ -29,6 +32,14 @@ const users = {
   },
 };
 
+
+const userName = (cookie, users) => {
+  for (let ids in users) {
+    if (cookie === ids) {
+      return users[ids].email;
+    }
+  }
+};
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req, res) => {
@@ -44,23 +55,27 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  //const username = req.cookies.userId;
+  const templateVars = {
+     urls: urlDatabase ,
+  //   username: username 
+       username: req.cookies.userId
+
+    };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const username = req.cookies.userId;
+  const templateVars = {
+     urls: urlDatabase ,
+     username: username 
+    };
+  res.render("urls_new", templateVars );
 });
 
 app.get("/urls/:shortUrl", (req, res) => {
-  /*
-  // first preference
-  const templateVars = {
-    id: req.params.id,
-    longURL: "http://www.lighthouselabs.ca",
-  };
-  res.render("urls_show", templateVars);
-*/
+  
   const shortUrl = req.params.shortUrl;
   console.log("id" + shortUrl);
 
@@ -101,8 +116,25 @@ app.post("/urls", (req, res) => {
     longUrl: longUrl,
   };
 
+  const newId = Math.random().toString(36).substring(2, 8);
+
+  console.log("newId" + newId);
+
+  urlDatabase[newId] = req.body.longURL;
+
+  console.log("urlDatabase" + urlDatabase);
+  console.log("urlDatabase.newId" + urlDatabase[newId]);
+
+  res.redirect("/urls");
+});
+
   app.get("/login", (req, res) => {
-    res.render("login");
+    const username = req.cookies.userId;
+    const templateVars = {
+       username: username 
+      };
+
+    res.render("urls_login" , templateVars);
   });
 
   app.post("/login", (req, res) => {
@@ -117,9 +149,19 @@ app.post("/urls", (req, res) => {
       }
     }
 
-   res.cookie("userId", foundUser.id);
+    res.cookie("userId", foundUser.id);
 
     res.redirect("/urls");
+  });
+
+  app.get("/register", (req, res) => {
+
+    const username = req.cookies.userId;
+    const templateVars = {
+       username: username 
+      };
+
+    res.render("urls_register", templateVars);
   });
 
   app.post("/register", (req, res) => {
@@ -141,18 +183,12 @@ app.post("/urls", (req, res) => {
     res.redirect("/urls");
   });
 
-  app.get("/register", (req, res) => {
-    res.render("urls_register");
+ 
+  app.post('/logout', (req, res) => {
+    res.clearCookie('userId');
+  
+    // send the user to home
+    res.redirect('/urls');
   });
-
-  const newId = Math.random().toString(36).substring(2, 8);
-
-  console.log("newId" + newId);
-
-  urlDatabase[newId] = req.body.longURL;
-
-  console.log("urlDatabase" + urlDatabase);
-  console.log("urlDatabase.newId" + urlDatabase[newId]);
-
-  res.redirect("/urls");
-});
+  
+  

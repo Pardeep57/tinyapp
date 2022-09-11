@@ -20,6 +20,12 @@
     </div>
 
     <div>
+      <% if (username) {%>
+        <form method="POST" action="/logout">
+          <span class="btn btn-primary">Logged in As:  <%= username %>!</span>
+          <button type="submit" class="btn btn-primary">Logout</button>
+        </form>
+      <% } else { %>
       <a
         href="/login"
         class="btn btn-success"
@@ -34,6 +40,7 @@
         aria-disabled="true"
         >Register</a
       >
+      <% } %>
     </div>
   </nav>
 </header>
