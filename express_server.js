@@ -1,12 +1,12 @@
 const express = require("express");
-const morgan = require('morgan');
-const bodyParser = require('body-parser');
+const morgan = require("morgan");
+const bodyParser = require("body-parser");
 
 const app = express();
 const PORT = process.env.PORT || 8080; // default port 8080
-app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.urlencoded({ extended: false }));
 
-app.use(morgan('dev'));
+app.use(morgan("dev"));
 app.use(express.urlencoded({ extended: false }));
 
 app.set("view engine", "ejs");
@@ -16,7 +16,7 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com",
 };
 
- app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -48,17 +48,16 @@ app.get("/urls/:shortUrl", (req, res) => {
   };
   res.render("urls_show", templateVars);
 */
-const shortUrl = req.params.shortUrl;
-console.log('id' + shortUrl);
-  
-const longURL = urlDatabase[shortUrl];
-console.log('longURL' + longURL);
+  const shortUrl = req.params.shortUrl;
+  console.log("id" + shortUrl);
 
-let templateVars = { shortUrl: shortUrl, longURL: longURL};
-console.log('templateVars' + templateVars);
+  const longURL = urlDatabase[shortUrl];
+  console.log("longURL" + longURL);
 
-res.render('urls_show', templateVars);
+  let templateVars = { shortUrl: shortUrl, longURL: longURL };
+  console.log("templateVars" + templateVars);
 
+  res.render("urls_show", templateVars);
 });
 
 app.get("/u/:id", (req, res) => {
@@ -74,11 +73,9 @@ app.post("/urls/:id/delete", (req, res) => {
   res.redirect("/urls");
 });
 
-
-app.post('/urls/:shortURL/edit', (req, res) => {
-    urlDatabase[req.params.shortURL] = req.body.longURL;
-    res.redirect('/urls');
-  
+app.post("/urls/:shortURL/edit", (req, res) => {
+  urlDatabase[req.params.shortURL] = req.body.longURL;
+  res.redirect("/urls");
 });
 
 app.post("/urls", (req, res) => {
@@ -86,23 +83,26 @@ app.post("/urls", (req, res) => {
   // res.send("Ok"); // Respond with 'Ok' (we will replace this)
 
   const longUrl = req.body.longURL;
-  
+
   const newURL = {
     longUrl: longUrl,
-     };
+  };
+
+  app.get("/register", (req, res) => {
+    res.render("urls_register");
+  });
 
   //const newId = Math.random().toString(36).substring(2, 6);
-  
-  const newId = randomString ();
-  console.log('newId' + newId);
+
+  const newId = randomString();
+  console.log("newId" + newId);
 
   urlDatabase[newId] = req.body.longURL;
 
-  console.log('urlDatabase' + urlDatabase);
-  console.log('urlDatabase.newId' + urlDatabase[newId]);
+  console.log("urlDatabase" + urlDatabase);
+  console.log("urlDatabase.newId" + urlDatabase[newId]);
 
-  res.redirect('/urls');
-
+  res.redirect("/urls");
 });
 
 const generateRandomString = () => {
