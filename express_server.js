@@ -16,6 +16,19 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com",
 };
 
+const users = {
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
+  },
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk",
+  },
+};
+
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req, res) => {
@@ -88,13 +101,33 @@ app.post("/urls", (req, res) => {
     longUrl: longUrl,
   };
 
-  app.get("/register", (req, res) => {
-    res.render("urls_register");
+  app.post('/register', (req, res) => {
+    // console.log(req.body);
+  
+    const email = req.body.email;
+    const password = req.body.password;
+    const id = Math.random().toString(36).substring(2, 8);
+  
+    const user = {
+      id: id,
+      email: email,
+      password: password
+    };
+  
+    users[id] = user;
+    console.log(users);
+  
+    res.redirect('/urls');
   });
 
-  //const newId = Math.random().toString(36).substring(2, 6);
 
-  const newId = randomString();
+  app.get('/register', (req, res) => {
+    res.render('urls_register');
+  });
+  
+
+  const newId = Math.random().toString(36).substring(2, 8);
+
   console.log("newId" + newId);
 
   urlDatabase[newId] = req.body.longURL;
@@ -104,26 +137,3 @@ app.post("/urls", (req, res) => {
 
   res.redirect("/urls");
 });
-
-const generateRandomString = () => {
-  const lowerCaseValues = "abcdefghijklmnopqrstuvwxyz";
-  const upperCaseValues = lowerCaseValues.toUpperCase();
-  const numericValues = "1234567890";
-  const alphaNumeric = lowerCaseValues + upperCaseValues + numericValues;
-  //alphaNumeric is 62
-  let index = Math.round(Math.random() * 100);
-  if (index > 61) {
-    while (index > 61) {
-      index = Math.round(Math.random() * 100);
-    }
-  }
-  return alphaNumeric[index];
-};
-
-const randomString = () => {
-  let randomString = "";
-  while (randomString.length < 6) {
-    randomString += generateRandomString();
-  }
-  return randomString;
-};
