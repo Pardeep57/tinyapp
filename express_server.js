@@ -101,30 +101,49 @@ app.post("/urls", (req, res) => {
     longUrl: longUrl,
   };
 
-  app.post('/register', (req, res) => {
+  app.get("/login", (req, res) => {
+    res.render("login");
+  });
+
+  app.post("/login", (req, res) => {
+    const email = req.body.email;
+    const password = req.body.password;
+
+    let foundUser = null;
+    for (const userId in users) {
+      const user = users[userId];
+      if (user.email === email) {
+        foundUser = user;
+      }
+    }
+
+   res.cookie("userId", foundUser.id);
+
+    res.redirect("/urls");
+  });
+
+  app.post("/register", (req, res) => {
     // console.log(req.body);
-  
+
     const email = req.body.email;
     const password = req.body.password;
     const id = Math.random().toString(36).substring(2, 8);
-  
+
     const user = {
       id: id,
       email: email,
-      password: password
+      password: password,
     };
-  
+
     users[id] = user;
     console.log(users);
-  
-    res.redirect('/urls');
+
+    res.redirect("/urls");
   });
 
-
-  app.get('/register', (req, res) => {
-    res.render('urls_register');
+  app.get("/register", (req, res) => {
+    res.render("urls_register");
   });
-  
 
   const newId = Math.random().toString(36).substring(2, 8);
 
