@@ -1,7 +1,8 @@
 const express = require("express");
 const morgan = require("morgan");
 const bodyParser = require("body-parser");
-const cookieParser = require("cookie-parser");
+// const cookieParser = require("cookie-parser");
+const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
 
 const app = express();
@@ -9,7 +10,13 @@ const PORT = process.env.PORT || 8080; // default port 8080
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(morgan("dev"));
-app.use(cookieParser());
+// app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['userId'],
+}));
+
+
 app.use(express.urlencoded({ extended: false }));
 
 app.set("view engine", "ejs");
@@ -54,7 +61,9 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const username = req.cookies.userId;
+   // const username = req.cookies.userId;
+   const username = req.session.userId;
+  
   const templateVars = {
     urls: urlDatabase,
     username: username,
@@ -63,7 +72,9 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  const username = req.cookies.userId;
+  // const username = req.cookies.userId;
+  const username = req.session.userId;
+  
   const templateVars = {
     urls: urlDatabase,
     username: username,
@@ -72,8 +83,9 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortUrl", (req, res) => {
-  const username = req.cookies.userId;
-
+ // const username = req.cookies.userId;
+ const username = req.session.userId;
+  
   const shortUrl = req.params.shortUrl;
   console.log("id" + shortUrl);
 
@@ -130,7 +142,9 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  const username = req.cookies.userId;
+  // const username = req.cookies.userId;
+  const username = req.session.userId;
+ console.log('trying to see '+ username);
   const email = req.body.email;
   const templateVars = {
     username: username,
@@ -146,7 +160,6 @@ app.get("/register", (req, res) => {
 
 app.post("/register", (req, res) => {
   // console.log(req.body);
-
   const email = req.body.email;
   const password = req.body.password;
   const id = Math.random().toString(36).substring(2, 8);
@@ -154,6 +167,9 @@ app.post("/register", (req, res) => {
   const salt = bcrypt.genSaltSync(10);
   const hash = bcrypt.hashSync(password, salt);
 
+  if (email === '') {
+    res.status(400).send('Email is required');
+  }
 
   const user = {
     id: id,
@@ -169,8 +185,9 @@ app.post("/register", (req, res) => {
 
 
 app.get("/login", (req, res) => {
-  const username = req.cookies.userId;
-  const templateVars = {
+ // const username = req.cookies.userId;
+ const username = req.session.userId; 
+ const templateVars = {
     username: username,
   };
 
@@ -198,7 +215,7 @@ app.post("/login", (req, res) => {
     return res.status(403).send("no user with that email exists");
   }
   // check if passwords match
-
+ 
   const result = bcrypt.compareSync(password, foundUser.password);
   /*
   if (foundUser.password !== password) {
@@ -208,16 +225,17 @@ app.post("/login", (req, res) => {
   if (!result) {
     return res.status(401).send("wrong Username or password");
   }
-  res.cookie("userId", foundUser.id);
+ // res.cookie("userId", foundUser.id);
+
+req.session.userId = foundUser.id;
 
   res.redirect("/urls");
 });
 
 
-
 app.post("/logout", (req, res) => {
-  res.clearCookie("userId");
-
+ // res.clearCookie("userId");
+  req.session = null;
   // send the user to home
   res.redirect("/urls");
 });
