@@ -112,7 +112,8 @@ app.post("/register", (req, res) => {
 
     users[id] = user;
     console.log(users);
-
+    req.session.userId = user.email;
+  
     res.redirect("/urls");
   }
 });

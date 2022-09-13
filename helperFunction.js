@@ -9,4 +9,6 @@ const getUserByEmail = (newVal, database) => {
   }
   return true;
   };
+
+
   module.exports = { getUserByEmail };
