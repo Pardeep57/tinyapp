@@ -52,8 +52,7 @@ const userName = (cookie, users) => {
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req, res) => {
-  //res.send("Hello!");
-
+ 
   const username = req.session.userId;
   if (!username) {
     res.redirect("/login");
@@ -73,8 +72,7 @@ app.get("/urls.json", (req, res) => {
 app.get("/register", (req, res) => {
   // const username = req.cookies.userId;
   const username = req.session.userId;
-  // console.log("trying to see " + username);
-
+  
   const email = req.body.email;
   const templateVars = {
     username: username,
@@ -89,7 +87,6 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  // console.log(req.body);
   const email = req.body.email;
   const password = req.body.password;
 
@@ -144,7 +141,6 @@ app.post("/login", (req, res) => {
         foundUser = user;
       }
     }
-    // did we find a user???
     if (!foundUser) {
       return res.status(403).send("no user with that email exists");
     }
