@@ -219,6 +219,9 @@ app.post("/urls", (req, res) => {
 
 app.get("/urls/:shortUrl", (req, res) => {
   // const username = req.cookies.userId;
+
+  // const experimentname = req.cookies.userId;
+  // const testing = req.cookies.userId;
   const username = req.session.userId;
 
   const shortUrl = req.params.shortUrl;
