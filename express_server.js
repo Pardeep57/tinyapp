@@ -175,7 +175,7 @@ app.post("/urls/:shortURL/edit", (req, res) => {
   if (!checkValidUser(username, shortUrl, urlDatabase)) {
     res.send("This id does not belong to you");
   } else {
-    urlDatabase[req.params.shortURL].longUrl = req.body.longURL;
+    urlDatabase[req.params.shortURL] = req.body.longURL;
     res.redirect("/urls");
   }
 });
@@ -252,7 +252,7 @@ app.get("/urls/:shortUrl", (req, res) => {
 });
 
 app.get("/u/:id", (req, res) => {
-  const shortUrl = req.params.shortUrl;
+  const shortUrl = req.params.id;
   if (checkShortUrl(shortUrl, urlDatabase)) {
     const longURL = urlDatabase[req.params.id];
     res.redirect(longURL);
@@ -260,7 +260,7 @@ app.get("/u/:id", (req, res) => {
     res.status(404).send("Do not exist");
   }
 });
-
+// to check if github works
 app.post("/logout", (req, res) => {
   // res.clearCookie("userId");
   req.session = null;
