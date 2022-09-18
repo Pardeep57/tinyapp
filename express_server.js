@@ -35,6 +35,7 @@ const urlDatabase = {
   //   "9sm5xK": "http://www.google.com",
 };
 
+// user database
 const usersdb = {
   userRandomID: {
     id: "userRandomID",
@@ -62,6 +63,7 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+// To get the registration page
 app.get("/register", (req, res) => {
   const username = loggedUser(req.session.userId, usersdb);
   if (username) {
@@ -81,21 +83,18 @@ app.get("/register", (req, res) => {
   }
 });
 
+// To register new users
 app.post("/register", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-
-  if (email === "") {
-    res.status(400).send("Email is required");
-  } else if (password === "") {
-    res.status(400).send("Password is required");
+  if (email === "" || password === "") {
+    res.status(400).send("Email and Password both are required");
   } else if (!getUserByEmail(email, usersdb)) {
     res.status(400).send("This email is already registered");
   } else {
     const id = Math.random().toString(36).substring(2, 8);
     const salt = bcrypt.genSaltSync(10);
     const hash = bcrypt.hashSync(password, salt);
-
     const user = {
       id: id,
       email: email,
@@ -104,11 +103,11 @@ app.post("/register", (req, res) => {
     usersdb[id] = user;
     console.log(usersdb);
     req.session.userId = usersdb[id].email;
-
     res.redirect("/urls");
   }
 });
 
+// To get Login Page for users
 app.get("/login", (req, res) => {
   const username = loggedUser(req.session.userId, usersdb);
   if (username) {
@@ -117,19 +116,16 @@ app.get("/login", (req, res) => {
     const templateVars = {
       username: username,
     };
-
     res.render("urls_login", templateVars);
   }
 });
 
+// to check and validate users before login
 app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-
-  if (email === "") {
-    res.status(400).send("Email is required");
-  } else if (password === "") {
-    res.status(400).send("Password is required");
+  if (email === "" || password === "") {
+    res.status(400).send("Email and Password both are required");
   } else {
     let foundUser = null;
     for (const userId in usersdb) {
@@ -139,23 +135,18 @@ app.post("/login", (req, res) => {
       }
     }
     if (!foundUser) {
-      return res.status(403).send("no user with that email exists");
+      return res.status(403).send("No user with that emailId exists");
     }
-    // check if passwords match
-
     const result = bcrypt.compareSync(password, foundUser.password);
-
     if (!result) {
-      return res.status(401).send("wrong Username or password");
+      return res.status(401).send("Wrong Username or password");
     }
-    // res.cookie("userId", foundUser.id);
-
     req.session.userId = foundUser.email;
-
     res.redirect("/urls");
   }
 });
 
+// To get a page that displays all the Urls in the database
 app.get("/urls", (req, res) => {
   const username = loggedUser(req.session.userId, usersdb);
   if (!username) {
@@ -183,6 +174,7 @@ app.post("/urls", (req, res) => {
   }
 });
 
+// To delete the unwanted urls
 app.post("/urls/:shortURL/delete", (req, res) => {
   const username = loggedUser(req.session.userId, usersdb);
   const id = req.params.shortURL;
@@ -195,10 +187,10 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   }
 });
 
+// To edit/update the existing urls
 app.post("/urls/:shortURL/edit", (req, res) => {
   const username = loggedUser(req.session.userId, usersdb);
   const shortURL = req.params.shortURL;
-
   if (!checkValidUser(username, shortURL, urlDatabase)) {
     res.send("This id does not belong to you");
   } else {
@@ -207,14 +199,10 @@ app.post("/urls/:shortURL/edit", (req, res) => {
   }
 });
 
+// To create new short urls
 app.get("/urls/new", (req, res) => {
   const username = loggedUser(req.session.userId, usersdb);
-  console.log("expuser " + usersdb);
-  console.log("req.session.userId " + req.session.userId);
-
   if (!username) {
-    console.log("!user " + username);
-
     res.redirect("/login");
   } else {
     const templateVars = {
@@ -225,6 +213,7 @@ app.get("/urls/new", (req, res) => {
   }
 });
 
+// Edit page to change/update urls
 app.get("/urls/:shortURL", (req, res) => {
   const username = loggedUser(req.session.userId, usersdb);
   const shortURL = req.params.shortURL;
@@ -245,6 +234,7 @@ app.get("/urls/:shortURL", (req, res) => {
   }
 });
 
+// To go to the page via newly created short url
 app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   if (checkShortUrl(shortURL, urlDatabase)) {
@@ -255,11 +245,9 @@ app.get("/u/:shortURL", (req, res) => {
   }
 });
 
-// to check if github works
 app.post("/logout", (req, res) => {
   // res.clearCookie("userId");
   req.session = null;
-  // send the user to home
   res.redirect("/urls");
 });
 
