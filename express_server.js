@@ -31,8 +31,8 @@ const {
 } = require("./helperFunction");
 
 const urlDatabase = {
-  // b2xVn2: "http://www.lighthouselabs.ca",
-  // "9sm5xK": "http://www.google.com",
+  //   b2xVn2: "http://www.lighthouselabs.ca",
+  //   "9sm5xK": "http://www.google.com",
 };
 
 const usersdb = {
@@ -47,13 +47,22 @@ const usersdb = {
     password: "dishwasher-funk",
   },
 };
+
+app.get("/", (req, res) => {
+  const username = loggedUser(req.session.userId, usersdb);
+  if (!username) {
+    res.redirect("/login");
+  } else {
+    res.redirect("/urls");
+  }
+});
+
 app.use(express.urlencoded({ extended: true }));
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
 app.get("/register", (req, res) => {
-  
   const username = loggedUser(req.session.userId, usersdb);
   if (username) {
     res.redirect("/urls");
@@ -96,15 +105,6 @@ app.post("/register", (req, res) => {
     console.log(usersdb);
     req.session.userId = usersdb[id].email;
 
-    res.redirect("/urls");
-  }
-});
-
-app.get("/", (req, res) => {
-  const username = loggedUser(req.session.userId, usersdb);
-  if (!username) {
-    res.redirect("/login");
-  } else {
     res.redirect("/urls");
   }
 });
@@ -156,13 +156,40 @@ app.post("/login", (req, res) => {
   }
 });
 
-app.post("/urls/:id/delete", (req, res) => {
+app.get("/urls", (req, res) => {
   const username = loggedUser(req.session.userId, usersdb);
-  const id = req.params.id;
+  if (!username) {
+    res.render("urls_errors");
+  } else {
+    const usersUrlsOnly = usersUrlOnly(username, urlDatabase);
+    const templateVars = {
+      urls: usersUrlsOnly,
+      username: username,
+    };
+    res.render("urls_index", templateVars);
+  }
+});
+
+//post create new url
+app.post("/urls", (req, res) => {
+  const username = loggedUser(req.session.userId, usersdb);
+  if (!username) {
+    res.render("/login");
+  } else {
+    const shortURL = Math.random().toString(36).substring(2, 8);
+    const longURL = req.body.longURL;
+    urlDatabase[shortURL] = { longURL: longURL, userID: username };
+    res.redirect("/urls");
+  }
+});
+
+app.post("/urls/:shortURL/delete", (req, res) => {
+  const username = loggedUser(req.session.userId, usersdb);
+  const id = req.params.shortURL;
   if (!checkValidUser(username, id, urlDatabase)) {
     res.send("This id does not belong to you");
   } else {
-    const urlToDelete = req.params.id;
+    const urlToDelete = req.params.shortURL;
     delete urlDatabase[urlToDelete];
     res.redirect("/urls");
   }
@@ -170,12 +197,12 @@ app.post("/urls/:id/delete", (req, res) => {
 
 app.post("/urls/:shortURL/edit", (req, res) => {
   const username = loggedUser(req.session.userId, usersdb);
-  const shortUrl = req.params.shortURL;
+  const shortURL = req.params.shortURL;
 
-  if (!checkValidUser(username, shortUrl, urlDatabase)) {
+  if (!checkValidUser(username, shortURL, urlDatabase)) {
     res.send("This id does not belong to you");
   } else {
-    urlDatabase[req.params.shortURL] = req.body.longURL;
+    urlDatabase[req.params.shortURL].longURL = req.body.longURL;
     res.redirect("/urls");
   }
 });
@@ -198,49 +225,16 @@ app.get("/urls/new", (req, res) => {
   }
 });
 
-app.get("/urls", (req, res) => {
+app.get("/urls/:shortURL", (req, res) => {
   const username = loggedUser(req.session.userId, usersdb);
-  if (!username) {
-    res.render("urls_errors");
-  } else {
-    const usersUrlsOnly = usersUrlOnly(username, urlDatabase);
-    const templateVars = {
-      urls: usersUrlsOnly,
-      username: username,
-    };
-    res.render("urls_index", templateVars);
-  }
-});
-
-//post create new url
-app.post("/urls", (req, res) => {
-  const username = loggedUser(req.session.userId, usersdb);
-  if (!username) {
-    res.render("/login");
-  } else {
-    const longUrl = req.body.longURL;
-
-    if (longUrl === "") {
-      res.status(400).send("Please enter new Url");
-    } else {
-      const newId = Math.random().toString(36).substring(2, 8);
-      urlDatabase[newId] = { longUrl: longUrl, userID: username };
-
-      res.redirect(`/urls/${newId}`);
-    }
-  }
-});
-
-app.get("/urls/:shortUrl", (req, res) => {
-  const username = loggedUser(req.session.userId, usersdb);
-  const shortUrl = req.params.shortUrl;
-  if (checkShortUrl(shortUrl, urlDatabase)) {
-    if (username !== urlDatabase[shortUrl].userID) {
+  const shortURL = req.params.shortURL;
+  if (checkShortUrl(shortURL, urlDatabase)) {
+    if (username !== urlDatabase[shortURL].userID) {
       res.send("This id does not belong to you");
     } else {
-      const longURL = urlDatabase[shortUrl].longUrl;
+      const longURL = urlDatabase[shortURL].longURL;
       let templateVars = {
-        shortUrl: shortUrl,
+        shortURL: shortURL,
         longURL: longURL,
         username: username,
       };
@@ -251,15 +245,16 @@ app.get("/urls/:shortUrl", (req, res) => {
   }
 });
 
-app.get("/u/:id", (req, res) => {
-  const shortUrl = req.params.id;
-  if (checkShortUrl(shortUrl, urlDatabase)) {
-    const longURL = urlDatabase[req.params.id];
+app.get("/u/:shortURL", (req, res) => {
+  const shortURL = req.params.shortURL;
+  if (checkShortUrl(shortURL, urlDatabase)) {
+    const longURL = urlDatabase[shortURL].longURL;
     res.redirect(longURL);
   } else {
     res.status(404).send("Do not exist");
   }
 });
+
 // to check if github works
 app.post("/logout", (req, res) => {
   // res.clearCookie("userId");
