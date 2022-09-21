@@ -170,7 +170,7 @@ app.post("/urls", (req, res) => {
     const shortURL = Math.random().toString(36).substring(2, 8);
     const longURL = req.body.longURL;
     urlDatabase[shortURL] = { longURL: longURL, userID: username };
-    res.redirect("/urls");
+    res.redirect(`/urls/${shortURL}`);
   }
 });
 
